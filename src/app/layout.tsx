@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: 'e2ee-demo',
     description: '',
+    icons: {
+        icon: '/globe-lock.svg',
+    },
 };
 
 export default function RootLayout({
