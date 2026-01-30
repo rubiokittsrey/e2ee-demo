@@ -17,20 +17,14 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
         john: { privateKey: null, publicKey: null, messages: [] },
     });
     const [currentUser, setCurrentUser] = useState('alice');
-    const [step, setStep] = useState('');
+    const [steps, setSteps] = useState<Step[]>([]);
 
-    const updateStep = (message: string, duration: number = 2000) => {
-        setStep(message);
-        if (duration > 0) {
-            setTimeout(() => setStep(''), duration);
-        }
-    };
-
-    const generateAESKey = () =>
-        window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
+    const generateAESKey = async () => {
+        return await window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
             'encrypt',
             'decrypt',
         ]);
+    };
 
     const encryptWithAES = async (message: string, key: CryptoKey) => {
         const iv = window.crypto.getRandomValues(new Uint8Array(12));
@@ -60,7 +54,13 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
     };
 
     const generateKeyPair = async (userName: string) => {
-        updateStep(`Generate key pair for ${userName}...`, 0);
+        setSteps((prev) => [
+            ...prev,
+            {
+                message: `⏳ Generating RSA key pair for ${userName.charAt(0).toUpperCase() + userName.slice(1)}...`,
+                context: 'public-private-key-generation',
+            },
+        ]);
 
         const keyPair = await window.crypto.subtle.generateKey(
             {
@@ -82,7 +82,14 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
             },
         }));
 
-        updateStep(`${userName}'s keys generated!`);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        setSteps((prev) => [
+            ...prev.slice(0, -1),
+            {
+                message: `🔑 Key pair generated for ${userName.charAt(0).toUpperCase() + userName.slice(1)}`,
+                context: 'public-private-key-generation',
+            },
+        ]);
     };
 
     const encryptAESKey = async (aesKey: CryptoKey, publicKey: CryptoKey) => {
@@ -116,12 +123,33 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
 
         try {
             // generate one-time AES key
+            setSteps((prev) => [
+                ...prev,
+                {
+                    message: `🔐 Generating one-time AES-256 key...`,
+                    context: 'aes-key-generation',
+                },
+            ]);
             const aesKey = await generateAESKey();
 
             // encrypt message with AES
+            setSteps((prev) => [
+                ...prev,
+                {
+                    message: `🔒 Encrypting message with AES-GCM...`,
+                    context: 'message-encryption-aes',
+                },
+            ]);
             const { encryptedMessage, iv } = await encryptWithAES(message, aesKey);
 
             // encrypt AES key with RSA
+            setSteps((prev) => [
+                ...prev,
+                {
+                    message: `🔑 Encrypting AES key with ${recipient}'s public RSA key...`,
+                    context: 'aes-key-encryption-rsa',
+                },
+            ]);
             const encryptedKey = await encryptAESKey(aesKey, recipientPublicKey);
 
             setUsers((prev) => ({
@@ -141,6 +169,14 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
                     ],
                 },
             }));
+
+            setSteps((prev) => [
+                ...prev,
+                {
+                    message: `📨 Message sent to ${recipient.charAt(0).toUpperCase() + recipient.slice(1)}`,
+                    context: 'message-sent',
+                },
+            ]);
         } catch (err) {
             console.error(err);
         }
@@ -154,9 +190,23 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
 
         try {
             // decrypt AES key with RSA
+            setSteps((prev) => [
+                ...prev,
+                {
+                    message: `🔓 Decrypting AES key with ${userName}'s private RSA key...`,
+                    context: 'aes-key-decryption-rsa',
+                },
+            ]);
             const aesKey = await decryptAESKey(msg.encryptedKey, privateKey);
 
             // decrypt message with AES
+            setSteps((prev) => [
+                ...prev,
+                {
+                    message: `📖 Decrypting message with AES key...`,
+                    context: 'message-decryption-aes',
+                },
+            ]);
             const decrypted = await decryptWithAES(msg.encryptedMessage, aesKey, msg.iv);
 
             setUsers((prev) => ({
@@ -168,6 +218,13 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
                     ),
                 },
             }));
+            setSteps((prev) => [
+                ...prev,
+                {
+                    message: `✉️ Message Decrypted`,
+                    context: 'message-decrypted',
+                },
+            ]);
         } catch (err) {
             console.error(err);
         }
@@ -178,7 +235,7 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
             value={{
                 users,
                 currentUser,
-                step,
+                steps,
                 setCurrentUser,
                 generateKeyPair,
                 sendMessage,
