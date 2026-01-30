@@ -11,6 +11,7 @@ export default function MessageComposer() {
     const [message, setMessage] = useState('');
     const otherUser = currentUser === 'alice' ? 'bob' : 'alice';
     const color = currentUser === 'alice' ? 'pink' : 'blue';
+    const otherColor = currentUser === 'alice' ? 'blue' : 'pink';
     const displayName = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
     const otherDisplayName = otherUser.charAt(0).toUpperCase() + otherUser.slice(1);
 
@@ -20,33 +21,35 @@ export default function MessageComposer() {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
-            <h3 className="text-xl font-bold mb-4">
-                Send Message as <span className={`text-${color}-600`}>{displayName}</span> to{' '}
-                {otherDisplayName}
+        <div className="rounded-lg space-y-3">
+            <h3 className="text-lg mb-4">
+                Sending Message as{' '}
+                <span className={`text-${color}-500 font-bold`}>{displayName}</span> to{' '}
+                <span className={`text-${otherColor}-500 font-bold`}>{otherDisplayName}</span>
             </h3>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
                 <Input
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     placeholder="Type your secret message..."
-                    className="flex-1 border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 py-5"
                 />
                 <Button
+                    disabled={message === ''}
                     onClick={handleSend}
-                    className={`bg-${color}-500 hover:bg-${color}-600 text-white px-6 py-2 rounded flex items-center gap-2`}
+                    className={`py-5 flex items-center gap-2`}
                 >
                     <Send size={18} />
                     Send Encrypted
                 </Button>
             </div>
 
-            <div className="mt-4 bg-gray-50 p-4 rounded">
-                <h4 className="font-semibold mb-2 text-sm">How it works:</h4>
-                <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+            <div className="bg-input/50 p-4 rounded-lg">
+                <h4 className="font-bold mb-2">How it works:</h4>
+                <ol className="text-sm space-y-1 list-decimal list-inside">
                     <li>Both users generate their own key pairs (public + private)</li>
                     <li>Sender encrypts message using recipient's public key</li>
                     <li>Encrypted message is "sent" (stored for recipient)</li>

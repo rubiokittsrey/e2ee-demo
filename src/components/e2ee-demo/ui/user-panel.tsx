@@ -1,40 +1,59 @@
 'use client';
 
-import { Users } from 'lucide-react';
+import { UserIcon } from 'lucide-react';
 import { useE2EE } from '../provider';
 import KeyGenerationButton from './generate-key-button';
 import KeyStatus from './key-status';
 import MessagesList from './message-list';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function UserPanel({ userName }: { userName: string }) {
     const { currentUser, setCurrentUser } = useE2EE();
     const isActive = currentUser === userName;
-    const color = userName === 'alice' ? 'pink' : 'blue';
     const displayName = userName.charAt(0).toUpperCase() + userName.slice(1);
 
     return (
         <div
-            className={`bg-white rounded-lg shadow-lg p-6 border-2 ${isActive ? `border-${color}-400` : 'border-gray-200'}`}
+            className={cn(
+                `rounded-lg p-6 border transition-colors h-full overflow-hidden flex flex-col`,
+                isActive && userName === 'bob' && 'border-blue-400',
+                isActive && userName === 'alice' && 'border-pink-400'
+            )}
         >
-            <div className="flex items-center justify-between mb-4">
-                <h2 className={`text-2xl font-bold text-${color}-600 flex items-center gap-2`}>
-                    <Users size={24} />
+            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <h1
+                    className={cn(
+                        `text-xl font-bold flex items-center gap-2 rounded-lg`,
+                        userName === 'alice' ? 'text-pink-500' : 'text-blue-500'
+                    )}
+                >
+                    <UserIcon className="size-5" />
                     {displayName}
-                </h2>
+                </h1>
                 <Button
                     onClick={() => setCurrentUser(userName)}
-                    className={`px-4 py-2 rounded ${isActive ? `bg-${color}-500 text-white` : 'bg-gray-200'}`}
+                    className={cn(
+                        `px-4 py-2 border bg-transparent`,
+                        userName === 'bob' &&
+                            'border-blue-500 hover:bg-blue-500 text-blue-500 hover:text-white',
+                        userName === 'alice' &&
+                            'border-pink-500 hover:bg-pink-500 text-pink-500 hover:text-white',
+                        isActive && userName === 'bob' && 'opacity-100 bg-blue-500 text-white',
+                        isActive && userName === 'alice' && 'opacity-100 bg-pink-500 text-white'
+                    )}
                 >
-                    Switch to {displayName}
+                    {isActive ? `Active as ${displayName}` : `Switch to ${displayName}`}
                 </Button>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-4 shrink-0">
                 <KeyGenerationButton userName={userName} />
             </div>
 
-            <KeyStatus userName={userName} />
+            <div className="shrink-0">
+                <KeyStatus userName={userName} />
+            </div>
             <MessagesList userName={userName} />
         </div>
     );

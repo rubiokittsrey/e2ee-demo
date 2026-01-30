@@ -92,7 +92,9 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
         if (!message.trim()) return;
 
         if (!users[recipient].publicKey) {
-            alert(`${recipient} hasn't generated keys yet!`);
+            alert(
+                `${recipient.charAt(0).toUpperCase()} hasn't generated keys yet! A user has to generate a key to receive encrypted messages.`
+            );
             return;
         }
 
