@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import ThemeToggle from '@/components/theme-toggle';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CollapsibleProps } from '@radix-ui/react-collapsible';
 
 export default function Header({ className, ...props }: React.HTMLProps<'div'>) {
     return (
@@ -62,16 +63,23 @@ function History() {
             </h3>
             <div className="h-full overflow-hidden space-y-2 overflow-y-auto p-">
                 {steps.map((s, i) => (
-                    <HistoryItem index={i} {...s} />
+                    <HistoryItem key={i} index={i} {...s} />
                 ))}
             </div>
         </div>
     );
 }
 
-function HistoryItem({ message, context, index }: Step & { index: number }) {
+function HistoryItem({
+    message,
+    context,
+    className,
+    index,
+    ...props
+}: Step & CollapsibleProps & React.RefAttributes<HTMLDivElement> & { index: number }) {
     return (
         <Collapsible
+            {...props}
             className={cn(
                 'w-full justify-start font-medium text-sm p-2 px-3 rounded-sm',
                 'bg-input/75 hover:bg-input text-foreground flex flex-col cursor-pointer'
@@ -83,7 +91,7 @@ function HistoryItem({ message, context, index }: Step & { index: number }) {
                     <span className="min-w-0 wrap-break-words text-left">{message}</span>
                 </div>
                 <CollapsibleContent className="mt-1 ml-4 font-normal opacity-50 cursor-pointer">
-                    <p className="text-start">{stepContextDescriptions[context]}</p>
+                    <p className="text-start italic">{stepContextDescriptions[context]}</p>
                 </CollapsibleContent>
             </CollapsibleTrigger>
         </Collapsible>

@@ -146,7 +146,7 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
             setSteps((prev) => [
                 ...prev,
                 {
-                    message: `🔑 Encrypting AES key with ${recipient}'s public RSA key...`,
+                    message: `🔑 Encrypting AES key with ${recipient.charAt(0).toUpperCase() + recipient.slice(1)}'s public RSA key...`,
                     context: 'aes-key-encryption-rsa',
                 },
             ]);
@@ -193,7 +193,7 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
             setSteps((prev) => [
                 ...prev,
                 {
-                    message: `🔓 Decrypting AES key with ${userName}'s private RSA key...`,
+                    message: `🔓 Decrypting AES key with ${userName.charAt(0).toUpperCase() + userName.slice(1)}'s private RSA key...`,
                     context: 'aes-key-decryption-rsa',
                 },
             ]);
