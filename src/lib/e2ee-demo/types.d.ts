@@ -1,14 +1,16 @@
-interface Message {
+type EncryptedMessage = {
     from: string;
-    encrypted: ArrayBuffer;
+    encryptedMessage: ArrayBuffer;
+    encryptedKey: ArrayBuffer;
+    iv: Uint8Array<ArrayBuffer>;
     decrypted: string | null;
     timestamp: number;
-}
+};
 
 interface User {
     privateKey: CryptoKey | null;
     publicKey: CryptoKey | null;
-    messages: Message[];
+    messages: EncryptedMessage[];
 }
 
 interface E2EEContextType {

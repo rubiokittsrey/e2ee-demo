@@ -14,7 +14,7 @@ export const useE2EE = () => {
 export default function E2EEProvider({ children }: { children: ReactNode }) {
     const [users, setUsers] = useState<Record<string, User>>({
         alice: { privateKey: null, publicKey: null, messages: [] },
-        bob: { privateKey: null, publicKey: null, messages: [] },
+        john: { privateKey: null, publicKey: null, messages: [] },
     });
     const [currentUser, setCurrentUser] = useState('alice');
     const [step, setStep] = useState('');
@@ -24,6 +24,39 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
         if (duration > 0) {
             setTimeout(() => setStep(''), duration);
         }
+    };
+
+    const generateAESKey = () =>
+        window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
+            'encrypt',
+            'decrypt',
+        ]);
+
+    const encryptWithAES = async (message: string, key: CryptoKey) => {
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const encoded = new TextEncoder().encode(message);
+
+        const encryptedMessage = await window.crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv },
+            key,
+            encoded
+        );
+
+        return { encryptedMessage, iv };
+    };
+
+    const decryptWithAES = async (
+        encryptedMessage: ArrayBuffer,
+        key: CryptoKey,
+        iv: Uint8Array<ArrayBuffer>
+    ) => {
+        const decrypted = await window.crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv },
+            key,
+            encryptedMessage
+        );
+
+        return new TextDecoder().decode(decrypted);
     };
 
     const generateKeyPair = async (userName: string) => {
@@ -52,54 +85,44 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
         updateStep(`${userName}'s keys generated!`);
     };
 
-    const encryptData = async (
-        msg: string,
-        recipientPublicKey: CryptoKey
-    ): Promise<ArrayBuffer> => {
-        updateStep('Encrypting message...', 0);
+    const encryptAESKey = async (aesKey: CryptoKey, publicKey: CryptoKey) => {
+        const rawKey = await window.crypto.subtle.exportKey('raw', aesKey);
 
-        const encoder = new TextEncoder();
-        const data = encoder.encode(msg);
-
-        const encrypted = await window.crypto.subtle.encrypt(
-            { name: 'RSA-OAEP' },
-            recipientPublicKey,
-            data
-        );
-
-        updateStep('Message encrypted!');
-        return encrypted;
+        return window.crypto.subtle.encrypt({ name: 'RSA-OAEP' }, publicKey, rawKey);
     };
 
-    const decryptData = async (
-        encryptedData: ArrayBuffer,
-        privateKey: CryptoKey
-    ): Promise<string> => {
-        updateStep('Decrypting message...', 0);
-
-        const decrypted = await window.crypto.subtle.decrypt(
+    const decryptAESKey = async (encryptedKey: ArrayBuffer, privateKey: CryptoKey) => {
+        const rawKey = await window.crypto.subtle.decrypt(
             { name: 'RSA-OAEP' },
             privateKey,
-            encryptedData
+            encryptedKey
         );
 
-        const decoder = new TextDecoder();
-        updateStep('Message decrypted!');
-        return decoder.decode(decrypted);
+        return window.crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, [
+            'decrypt',
+        ]);
     };
 
     const sendMessage = async (message: string, sender: string, recipient: string) => {
         if (!message.trim()) return;
 
-        if (!users[recipient].publicKey) {
+        const recipientPublicKey = users[recipient].publicKey;
+        if (!recipientPublicKey) {
             alert(
-                `${recipient.charAt(0).toUpperCase()} hasn't generated keys yet! A user has to generate a key to receive encrypted messages.`
+                `${recipient.charAt(0).toUpperCase() + recipient.slice(1)} has no keys yet.\nA user must generate a key to receive encrypted messages`
             );
             return;
         }
 
         try {
-            const encrypted = await encryptData(message, users[recipient].publicKey!);
+            // generate one-time AES key
+            const aesKey = await generateAESKey();
+
+            // encrypt message with AES
+            const { encryptedMessage, iv } = await encryptWithAES(message, aesKey);
+
+            // encrypt AES key with RSA
+            const encryptedKey = await encryptAESKey(aesKey, recipientPublicKey);
 
             setUsers((prev) => ({
                 ...prev,
@@ -109,29 +132,32 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
                         ...prev[recipient].messages,
                         {
                             from: sender,
-                            encrypted: encrypted,
+                            encryptedMessage,
+                            encryptedKey,
+                            iv,
                             decrypted: null,
                             timestamp: Date.now(),
                         },
                     ],
                 },
             }));
-        } catch (error) {
-            console.error('Encryption error:', error);
-            updateStep('Error encrypting message');
+        } catch (err) {
+            console.error(err);
         }
     };
 
     const decryptMessage = async (userName: string, index: number) => {
         const msg = users[userName].messages[index];
+        const privateKey = users[userName].privateKey;
 
-        if (!users[userName].privateKey) {
-            alert('Generate your keys first!');
-            return;
-        }
+        if (!privateKey) return;
 
         try {
-            const decrypted = await decryptData(msg.encrypted, users[userName].privateKey!);
+            // decrypt AES key with RSA
+            const aesKey = await decryptAESKey(msg.encryptedKey, privateKey);
+
+            // decrypt message with AES
+            const decrypted = await decryptWithAES(msg.encryptedMessage, aesKey, msg.iv);
 
             setUsers((prev) => ({
                 ...prev,
@@ -142,9 +168,8 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
                     ),
                 },
             }));
-        } catch (error) {
-            console.error('Decryption error:', error);
-            updateStep('Error decrypting message');
+        } catch (err) {
+            console.error(err);
         }
     };
 

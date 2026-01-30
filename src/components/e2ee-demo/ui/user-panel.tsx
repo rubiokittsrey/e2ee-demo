@@ -17,11 +17,11 @@ export default function UserPanel({ userName }: { userName: string }) {
         <div
             className={cn(
                 `rounded-lg p-6 border transition-colors h-full overflow-hidden flex flex-col`,
-                isActive && userName === 'bob' && 'border-blue-400',
+                isActive && userName === 'john' && 'border-blue-400',
                 isActive && userName === 'alice' && 'border-pink-400'
             )}
         >
-            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            <div className="flex items-center justify-between mb-4 shrink-0">
                 <h1
                     className={cn(
                         `text-xl font-bold flex items-center gap-2 rounded-lg`,
@@ -35,11 +35,11 @@ export default function UserPanel({ userName }: { userName: string }) {
                     onClick={() => setCurrentUser(userName)}
                     className={cn(
                         `px-4 py-2 border bg-transparent`,
-                        userName === 'bob' &&
+                        userName === 'john' &&
                             'border-blue-500 hover:bg-blue-500 text-blue-500 hover:text-white',
                         userName === 'alice' &&
                             'border-pink-500 hover:bg-pink-500 text-pink-500 hover:text-white',
-                        isActive && userName === 'bob' && 'opacity-100 bg-blue-500 text-white',
+                        isActive && userName === 'john' && 'opacity-100 bg-blue-500 text-white',
                         isActive && userName === 'alice' && 'opacity-100 bg-pink-500 text-white'
                     )}
                 >

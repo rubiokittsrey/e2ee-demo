@@ -6,7 +6,7 @@ export default function MessageItem({
     index,
     userName,
 }: {
-    message: Message;
+    message: EncryptedMessage;
     index: number;
     userName: string;
 }) {
@@ -19,7 +19,8 @@ export default function MessageItem({
             {!message.decrypted ? (
                 <div>
                     <p className="text-sm font-mono text-neutral-400 mb-2 break-all">
-                        🔒 Encrypted: {new Uint8Array(message.encrypted).slice(0, 20).join(',')}...
+                        🔒 Encrypted:{' '}
+                        {new Uint8Array(message.encryptedMessage).slice(0, 20).join(',')}...
                     </p>
                     <button
                         onClick={() => decryptMessage(userName, index)}

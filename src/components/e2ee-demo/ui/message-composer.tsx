@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 export default function MessageComposer() {
     const { currentUser, sendMessage } = useE2EE();
     const [message, setMessage] = useState('');
-    const otherUser = currentUser === 'alice' ? 'bob' : 'alice';
+    const otherUser = currentUser === 'alice' ? 'john' : 'alice';
     const color = currentUser === 'alice' ? 'pink' : 'blue';
     const otherColor = currentUser === 'alice' ? 'blue' : 'pink';
     const displayName = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
@@ -35,7 +35,7 @@ export default function MessageComposer() {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     placeholder="Type your secret message..."
-                    className="flex-1 py-5"
+                    className="flex-1 py-5 focus-visible:ring-0"
                 />
                 <Button
                     disabled={message === ''}

@@ -11,7 +11,7 @@ export default function Home() {
                 <div className="h-full overflow-y-hidden col-span-9 rounded-lg grid grid-rows-[1fr_auto] gap-6">
                     <div className="grid md:grid-cols-2 gap-6 h-full overflow-hidden">
                         <UserPanel userName="alice" />
-                        <UserPanel userName="bob" />
+                        <UserPanel userName="john" />
                     </div>
 
                     <MessageComposer />
