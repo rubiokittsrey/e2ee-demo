@@ -116,7 +116,7 @@ export default function E2EEProvider({ children }: { children: ReactNode }) {
         const recipientPublicKey = users[recipient].publicKey;
         if (!recipientPublicKey) {
             alert(
-                `${recipient.charAt(0).toUpperCase() + recipient.slice(1)} has no keys yet.\nA user must generate a key to receive encrypted messages`
+                `${recipient.charAt(0).toUpperCase() + recipient.slice(1)} has no keys yet.\nA user must generate a key pair in order to receive encrypted messages`
             );
             return;
         }
