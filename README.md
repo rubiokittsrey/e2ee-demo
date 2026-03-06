@@ -60,4 +60,4 @@ Decryption flow:
 
 ---
 
-**Author**: [@yourusername](https://github.com/rubiokittsrey)
+**Author**: [@rubiokittsrey](https://github.com/rubiokittsrey)
